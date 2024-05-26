@@ -19,11 +19,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/v1/products")
+@RequestMapping("${api.prefix}/products")
 public class ProductController {
     @GetMapping("") //http://localhost:8088/api/v1/products?page=1&limit=10
     public ResponseEntity<String> getAllProducts(
@@ -49,20 +50,23 @@ public class ProductController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessage);
             }
-            MultipartFile file = productDTO.getFile();
-            if (file != null) {
-                //Kiểm tra kích thước và định dạng
-                if (file.getSize() > 10 * 1024 * 1024) {
-                    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                            .body("File is to large! Maximun size is 10MB");
+            List<MultipartFile> listfile = productDTO.getFiles();
+            listfile = listfile == null ? new ArrayList<MultipartFile>() : listfile;
+            for (MultipartFile file : listfile){
+                if (file != null) {
+                    //Kiểm tra kích thước và định dạng
+                    if (file.getSize() > 10 * 1024 * 1024) {
+                        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                                .body("File is to large! Maximun size is 10MB");
+                    }
+                    String contentType = file.getContentType();
+                    if (contentType == null || !contentType.startsWith("image/")) {
+                        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                                .body("File must be an image!");
+                    }
+                    //Lưu file và cập nhật thumbnail trong DTO
+                    String filename = storeFile(file);
                 }
-                String contentType = file.getContentType();
-                if (contentType == null || !contentType.startsWith("image/")) {
-                    return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                            .body("File musst be an image!");
-                }
-                //Lưu file và cập nhật thumbnail trong DTO
-                String filename = storeFile(file);
             }
             return ResponseEntity.ok("Hi, insertCategory" + productDTO);
         } catch (Exception e) {
