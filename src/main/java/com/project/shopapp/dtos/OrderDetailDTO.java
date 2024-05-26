@@ -1,2 +1,4 @@
-package com.project.shopapp.dtos;public class OrderDetailDTO {
+package com.project.shopapp.dtos;
+
+public class OrderDetailDTO {
 }

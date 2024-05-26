@@ -8,6 +8,7 @@ import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
+import java.util.List;
 
 @Data // --> Chuyển thành ToString
 @Getter
@@ -18,14 +19,16 @@ public class ProductDTO {
     @NotBlank(message = "Name is required")
     @Size(min = 3, max = 350, message = "Name must be between 3 and 350 characters")
     private String productName;
+
     @Min(value = 0, message = "Price must be greater than or equal to 0")
     private Float price;
+
     private String thumbnail;
+
     private String description;
-    private Date createAt;
-    private Date updateAt;
-    private MultipartFile file;
-    @NotBlank(message = "Category is required")
+
+    private List<MultipartFile> files;
+
     @JsonProperty("category_id")
-    private String categoryId;
+    private Long categoryId;
 }
