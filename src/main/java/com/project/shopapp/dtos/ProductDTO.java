@@ -18,7 +18,7 @@ import java.util.List;
 public class ProductDTO {
     @NotBlank(message = "Name is required")
     @Size(min = 3, max = 350, message = "Name must be between 3 and 350 characters")
-    private String productName;
+    private String name;
 
     @Min(value = 0, message = "Price must be greater than or equal to 0")
     private Float price;
@@ -30,5 +30,5 @@ public class ProductDTO {
     private List<MultipartFile> files;
 
     @JsonProperty("category_id")
-    private Long categoryId;
+    private int categoryId;
 }
