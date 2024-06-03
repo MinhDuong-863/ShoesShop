@@ -11,5 +11,5 @@ import lombok.*;
 @NoArgsConstructor
 public class CategoryDTO {
     @NotEmpty(message = "Category name is null!")
-    private String categoryname;
+    private String name;
 }
