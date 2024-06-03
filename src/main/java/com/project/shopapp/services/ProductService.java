@@ -10,6 +10,7 @@ import com.project.shopapp.models.ProductImage;
 import com.project.shopapp.repositories.CategoryRepository;
 import com.project.shopapp.repositories.ProductImageRepository;
 import com.project.shopapp.repositories.ProductRepository;
+import com.project.shopapp.responses.ProductResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,10 +20,11 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ProductService implements IProductService{
+public class ProductService implements IProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductImageRepository productImageRepository;
+
     @Override
     public Product createProduct(ProductDTO productDTO) throws DataNotFoundException {
         Category existingCate = categoryRepository.findById(productDTO.getCategoryId())
@@ -44,9 +46,21 @@ public class ProductService implements IProductService{
     }
 
     @Override
-    public Page<Product> getProducts(PageRequest pageRequest) {
+    public Page<ProductResponse> getProducts(PageRequest pageRequest) {
         //Get list of products by page and limit
-        return productRepository.findAll(pageRequest);
+        return productRepository.findAll(pageRequest).map(product -> {
+            ProductResponse productResponse = ProductResponse.builder()
+                    .name(product.getName())
+                    .price(product.getPrice())
+                    .thumbnail(product.getThumbnail())
+                    .description(product.getDescription())
+                    .categoryId(product.getCategory().getId())
+                    .build();
+            productResponse.setCreateAt(product.getCreateAt());
+            productResponse.setUpdateAt(product.getUpdateAt());
+            return productResponse;
+        });
+
     }
 
     @Override
@@ -73,6 +87,7 @@ public class ProductService implements IProductService{
     public boolean existsByName(String name) {
         return productRepository.existsByName(name);
     }
+
     @Override
     public ProductImage createProductImage(int productId, ProductImageDTO productImageDTO) throws Exception {
         Product existingProduct = productRepository.findById(productId)
@@ -83,8 +98,8 @@ public class ProductService implements IProductService{
                 .build();
         //Cant insert more than 5 images
         int size = productImageRepository.findByProductId(productId).size();
-        if (size > 5){
-            throw  new InvalidParamException("Cannot insert more than 5 images");
+        if (size > 5) {
+            throw new InvalidParamException("Cannot insert more than 5 images");
         }
         return productImageRepository.save(productImage);
     }

@@ -1,14 +1,20 @@
 package com.project.shopapp.controllers;
 
+import com.github.javafaker.Faker;
 import com.project.shopapp.dtos.CategoryDTO;
 import com.project.shopapp.dtos.ProductDTO;
 import com.project.shopapp.dtos.ProductImageDTO;
 import com.project.shopapp.exceptions.DataNotFoundException;
 import com.project.shopapp.models.Product;
 import com.project.shopapp.models.ProductImage;
+import com.project.shopapp.responses.ProductListResponse;
+import com.project.shopapp.responses.ProductResponse;
 import com.project.shopapp.services.IProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +33,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -36,9 +43,18 @@ public class ProductController {
     private final IProductService productService;
 
     @GetMapping("") //http://localhost:8088/api/v1/products?page=1&limit=10
-    public ResponseEntity<String> getAllProducts(
+    public ResponseEntity<ProductListResponse> getAllProducts(
             @RequestParam("page") int page, @RequestParam("limit") int limit) {
-        return ResponseEntity.ok("Hi, getAllProducts");
+        PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createAt").descending());
+        Page<ProductResponse> productPage = productService.getProducts(pageRequest);
+        //Get total pages
+        int totalPages = productPage.getTotalPages();
+        List<ProductResponse> products = productPage.getContent();
+        ProductListResponse productListResponse = ProductListResponse.builder()
+                .productResponses(products)
+                .totalPages(totalPages)
+                .build();
+        return ResponseEntity.ok(productListResponse);
     }
 
     @GetMapping("/{id}")
@@ -103,17 +119,55 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateProduct(@PathVariable Long id) {
-        return ResponseEntity.ok("Hi, updateProduct");
+    public ResponseEntity<?> updateProduct(@PathVariable int id, @RequestBody ProductDTO productDTO) {
+        try {
+            Product product = productService.updateProduct(id, productDTO);
+            return ResponseEntity.ok(product);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
-        return ResponseEntity.ok("Hi, deleteProduct");
+    public ResponseEntity<String> deleteProduct(@PathVariable int id) {
+        try {
+            productService.deleteProduct(id);
+            return ResponseEntity.ok("Delete product successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    //@PostMapping("/generateFakeProducts")
+    private ResponseEntity<String> generateFakeProducts() {
+        Faker faker = new Faker();
+        for (int i = 0; i < 100; i++) {
+            String productName = faker.commerce().productName();
+            if(productService.existsByName(productName)){
+                continue;
+            }
+            ProductDTO productDTO = ProductDTO.builder()
+                    .name(productName)
+                    .price((float)faker.number().numberBetween(100000, 10000000))
+                    .thumbnail(faker.lorem().sentence())
+                    .description(faker.lorem().sentence())
+                    .categoryId((int)faker.number().numberBetween(1, 4))
+                    .build();
+            try {
+                productService.createProduct(productDTO);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+        }
+        return ResponseEntity.ok("Generate fake products successfully!");
     }
 
     private String storeFile(MultipartFile file) throws IOException {
-        String filename = StringUtils.cleanPath(file.getOriginalFilename());
+        if(!isImage(file) && file.getOriginalFilename() != null){
+            throw new IOException("File must be an image!");
+        }
+        String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         //Thêm UUID để tên file là duy nhất
         String uniqueFilename = UUID.randomUUID().toString() + "_" + filename;
         //Đường dẫn đến nơi muốn lưu file
@@ -124,5 +178,10 @@ public class ProductController {
         Path destination = Paths.get(uploadDir.toString(), uniqueFilename);
         Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
         return uniqueFilename;
+    }
+
+    private boolean isImage(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && contentType.startsWith("image/");
     }
 }
