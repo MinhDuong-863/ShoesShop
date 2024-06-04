@@ -3,6 +3,7 @@ package com.project.shopapp.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -38,7 +39,7 @@ public class Order {
     private String note;
 
     @Column(name = "order_date")
-    private LocalDateTime orderDate;
+    private Date orderDate;
 
     private String status;
 
@@ -52,9 +53,9 @@ public class Order {
     private String shippingAddress;
 
     @Column(name = "shipping_date", nullable = false)
-    private Date shippingDate;
+    private LocalDate shippingDate;
 
-    private int active;
+    private boolean active;
 
     @Column(name = "tracking_number")
     private String trackingNumber;

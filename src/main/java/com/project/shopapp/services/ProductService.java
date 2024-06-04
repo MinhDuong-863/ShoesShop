@@ -48,19 +48,8 @@ public class ProductService implements IProductService {
     @Override
     public Page<ProductResponse> getProducts(PageRequest pageRequest) {
         //Get list of products by page and limit
-        return productRepository.findAll(pageRequest).map(product -> {
-            ProductResponse productResponse = ProductResponse.builder()
-                    .name(product.getName())
-                    .price(product.getPrice())
-                    .thumbnail(product.getThumbnail())
-                    .description(product.getDescription())
-                    .categoryId(product.getCategory().getId())
-                    .build();
-            productResponse.setCreateAt(product.getCreateAt());
-            productResponse.setUpdateAt(product.getUpdateAt());
-            return productResponse;
-        });
-
+        return productRepository.findAll(pageRequest)
+                .map(ProductResponse::fromProduct);
     }
 
     @Override
