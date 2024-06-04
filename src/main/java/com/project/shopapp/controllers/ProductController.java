@@ -58,9 +58,13 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getProductById(@PathVariable int id) throws DataNotFoundException {
-        Product product = productService.getProductById(id);
-        return ResponseEntity.ok(product);
+    public ResponseEntity<?> getProductById(@PathVariable int id){
+        try {
+            Product product = productService.getProductById(id);
+            return ResponseEntity.ok(ProductResponse.fromProduct(product));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("")
@@ -122,7 +126,7 @@ public class ProductController {
     public ResponseEntity<?> updateProduct(@PathVariable int id, @RequestBody ProductDTO productDTO) {
         try {
             Product product = productService.updateProduct(id, productDTO);
-            return ResponseEntity.ok(product);
+            return ResponseEntity.ok(ProductResponse.fromProduct(product));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
