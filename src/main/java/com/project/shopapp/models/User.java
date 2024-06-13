@@ -53,8 +53,9 @@ public class User extends BaseModel implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        //authorities.add(new SimpleGrantedAuthority("ROLE " + getRole().getName()));
-        authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + getRole().getName().toUpperCase()));
+        //authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        //authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         return authorities;
     }
 
