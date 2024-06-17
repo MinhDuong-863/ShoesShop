@@ -25,4 +25,5 @@ logging:
   level:
     root: info
 jwt:
-  expiration: 2592000
+  expiration: 2592000 #30 days
+  secretKey: eapsM0qzCND33dp7alzC/tKpFmm98TANq7ESjATtyA0=

@@ -24,7 +24,7 @@ public class UserController {
     public ResponseEntity<?> createUser(
             @Valid @RequestBody UserDTO userDTO, BindingResult result){
         try{
-            if (result.hasErrors() == true) {
+            if (result.hasErrors()) {
                 List<String> errorMessage = result.getFieldErrors()
                         .stream()
                         .map(FieldError::getDefaultMessage)
@@ -42,10 +42,15 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO userLoginDTO){
+    public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO userLoginDTO) throws Exception {
         //Kiểm tra thông tin đăng nhập và sinh token
-        String token = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
-        //Trả về token trong response
-        return ResponseEntity.ok(token);
+        String token = null;
+        try {
+            token = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
+            //Trả về token trong response
+            return ResponseEntity.ok(token);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
