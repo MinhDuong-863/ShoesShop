@@ -40,6 +40,8 @@ public class User extends BaseModel implements UserDetails {
     @Column(name = "date_of_birth")
     private Date dateOfBirth;
 
+    private int gender;
+
     @Column(name = "facebook_account_id")
     private int fbAccountId;
 
