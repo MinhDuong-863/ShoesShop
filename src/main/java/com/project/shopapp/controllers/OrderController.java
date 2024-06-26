@@ -1,9 +1,12 @@
 package com.project.shopapp.controllers;
 
+import com.project.shopapp.components.LocalizationUtils;
 import com.project.shopapp.dtos.OrderDTO;
 import com.project.shopapp.models.Order;
+import com.project.shopapp.responses.CRUDOrderResponse;
 import com.project.shopapp.responses.OrderResponse;
 import com.project.shopapp.services.IOrderService;
+import com.project.shopapp.utils.MessageKey;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderController {
     private final IOrderService orderService;
+    private final LocalizationUtils localizationUtils;
     @PostMapping("")
     public ResponseEntity<?> createOrder(
             @RequestBody @Valid OrderDTO orderDTO, BindingResult result){
@@ -27,12 +31,20 @@ public class OrderController {
                         .stream()
                         .map(FieldError::getDefaultMessage)
                         .toList();
-                return ResponseEntity.badRequest().body(errorMessage);
+                return ResponseEntity.badRequest().body(
+                        CRUDOrderResponse.builder()
+                                .message(localizationUtils.getLocalizedMessage(MessageKey.CREATE_ORDER_FAILED, errorMessage))
+                                .build()
+                );
             }
             Order order = orderService.createOrder(orderDTO);
             return ResponseEntity.ok(order);
         } catch (Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(
+                    CRUDOrderResponse.builder()
+                            .message(localizationUtils.getLocalizedMessage(MessageKey.CREATE_ORDER_FAILED, e.getMessage()))
+                            .build()
+            );
         }
     }
     @GetMapping("/user/{user_id}")
@@ -41,7 +53,11 @@ public class OrderController {
             List<Order> orders = orderService.getOrdersByUserid(userId);
             return ResponseEntity.ok(orders);
         }catch (Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(
+                    CRUDOrderResponse.builder()
+                            .message(localizationUtils.getLocalizedMessage(MessageKey.GET_ORDER_FAILED, e.getMessage()))
+                            .build()
+            );
         }
     }
     @GetMapping("/{id}")
@@ -50,7 +66,11 @@ public class OrderController {
             Order existingOrder = (Order) orderService.getOrder(id);
             return ResponseEntity.ok(existingOrder);
         }catch (Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(
+                    CRUDOrderResponse.builder()
+                            .message(localizationUtils.getLocalizedMessage(MessageKey.GET_ORDER_FAILED, e.getMessage()))
+                            .build()
+            );
         }
     }
     @PutMapping("/{id}")
@@ -61,12 +81,20 @@ public class OrderController {
             Order order = orderService.updateOrder(id, orderDTO);
             return ResponseEntity.ok(order);
         } catch (Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(
+                    CRUDOrderResponse.builder()
+                            .message(localizationUtils.getLocalizedMessage(MessageKey.UPDATE_ORDER_FAILED, e.getMessage()))
+                            .build()
+            );
         }
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteOrder(@Valid @PathVariable("id") int id){
         orderService.deleteOrder(id);
-        return ResponseEntity.ok("Delete order");
+        return ResponseEntity.ok(
+                CRUDOrderResponse.builder()
+                        .message(localizationUtils.getLocalizedMessage(MessageKey.DELETE_ORDER_SUCCESS))
+                        .build()
+        );
     }
 }

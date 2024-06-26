@@ -1,15 +1,18 @@
 package com.project.shopapp.controllers;
 
 import com.github.javafaker.Faker;
+import com.project.shopapp.components.LocalizationUtils;
 import com.project.shopapp.dtos.CategoryDTO;
 import com.project.shopapp.dtos.ProductDTO;
 import com.project.shopapp.dtos.ProductImageDTO;
 import com.project.shopapp.exceptions.DataNotFoundException;
 import com.project.shopapp.models.Product;
 import com.project.shopapp.models.ProductImage;
+import com.project.shopapp.responses.CRUDProductResponse;
 import com.project.shopapp.responses.ProductListResponse;
 import com.project.shopapp.responses.ProductResponse;
 import com.project.shopapp.services.IProductService;
+import com.project.shopapp.utils.MessageKey;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -41,7 +44,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProductController {
     private final IProductService productService;
-
+    private final LocalizationUtils localizationUtils;
     @GetMapping("") //http://localhost:8088/api/v1/products?page=1&limit=10
     public ResponseEntity<ProductListResponse> getAllProducts(
             @RequestParam("page") int page, @RequestParam("limit") int limit) {
@@ -56,17 +59,19 @@ public class ProductController {
                 .build();
         return ResponseEntity.ok(productListResponse);
     }
-
     @GetMapping("/{id}")
     public ResponseEntity<?> getProductById(@PathVariable int id){
         try {
             Product product = productService.getProductById(id);
             return ResponseEntity.ok(ProductResponse.fromProduct(product));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(
+                    CRUDProductResponse.builder()
+                            .message(localizationUtils.getLocalizedMessage(MessageKey.GET_PRODUCT_FAILED, e.getMessage()))
+                            .build()
+            );
         }
     }
-
     @PostMapping("")
     public ResponseEntity<?> createProduct(
             @RequestBody @Valid ProductDTO productDTO,
@@ -80,12 +85,15 @@ public class ProductController {
                 return ResponseEntity.badRequest().body(errorMessage);
             }
             Product product = productService.createProduct(productDTO);
-            return ResponseEntity.ok("Hi, insertCategory" + product);
+            return ResponseEntity.ok("Hi, insertProduct" + product);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(
+                    CRUDProductResponse.builder()
+                            .message(localizationUtils.getLocalizedMessage(MessageKey.CREATE_PRODUCT_FAILED, e.getMessage()))
+                            .build()
+            );
         }
     }
-
     @PostMapping(value = "uploads/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadImages(
             @ModelAttribute("files") List<MultipartFile> files,
@@ -121,28 +129,37 @@ public class ProductController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProduct(@PathVariable int id, @RequestBody ProductDTO productDTO) {
         try {
             Product product = productService.updateProduct(id, productDTO);
             return ResponseEntity.ok(ProductResponse.fromProduct(product));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(
+                    CRUDProductResponse.builder()
+                            .message(localizationUtils.getLocalizedMessage(MessageKey.UPDATE_PRODUCT_FAILED, e.getMessage()))
+                            .build()
+            );
         }
 
     }
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable int id) {
+    public ResponseEntity<CRUDProductResponse> deleteProduct(@PathVariable int id) {
         try {
             productService.deleteProduct(id);
-            return ResponseEntity.ok("Delete product successfully!");
+            return ResponseEntity.ok(
+                    CRUDProductResponse.builder()
+                            .message(localizationUtils.getLocalizedMessage(MessageKey.DELETE_PRODUCT_SUCCESS))
+                            .build()
+            );
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(
+                    CRUDProductResponse.builder()
+                            .message(localizationUtils.getLocalizedMessage(MessageKey.DELETE_PRODUCT_FAILED, e.getMessage()))
+                            .build()
+            );
         }
     }
-
     //@PostMapping("/generateFakeProducts")
     private ResponseEntity<String> generateFakeProducts() {
         Faker faker = new Faker();
@@ -166,7 +183,6 @@ public class ProductController {
         }
         return ResponseEntity.ok("Generate fake products successfully!");
     }
-
     private String storeFile(MultipartFile file) throws IOException {
         if(!isImage(file) && file.getOriginalFilename() != null){
             throw new IOException("File must be an image!");
@@ -183,7 +199,6 @@ public class ProductController {
         Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
         return uniqueFilename;
     }
-
     private boolean isImage(MultipartFile file) {
         String contentType = file.getContentType();
         return contentType != null && contentType.startsWith("image/");
