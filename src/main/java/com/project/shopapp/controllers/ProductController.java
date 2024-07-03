@@ -22,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -50,7 +51,9 @@ public class ProductController {
     @GetMapping("") //http://localhost:8088/api/v1/products?page=1&limit=10
     public ResponseEntity<ProductListResponse> getAllProducts(
             @RequestParam("page") int page, @RequestParam("limit") int limit) {
-        PageRequest pageRequest = PageRequest.of(page, limit, Sort.by("createAt").descending());
+        PageRequest pageRequest = PageRequest.of(
+                page, limit, Sort.by("id").ascending()
+        );
         Page<ProductResponse> productPage = productService.getProducts(pageRequest);
         //Get total pages
         int totalPages = productPage.getTotalPages();
