@@ -175,9 +175,12 @@ public class ProductController {
             Path imagePath = Paths.get("uploads/" + imageName);
             UrlResource resource = new UrlResource(imagePath.toUri());
             if (resource.exists()) {
-                return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(resource);
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG).body(resource);
             } else {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(new UrlResource(Paths.get("uploads/404.jpg").toUri()));
             }
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
