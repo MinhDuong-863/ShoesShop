@@ -22,7 +22,6 @@ public class ProductResponse extends BaseResponse{
     private String description;
     @JsonProperty("category_id")
     private int categoryId;
-
     public static ProductResponse fromProduct(Product product) {
         ProductResponse productResponse = ProductResponse.builder()
                 .name(product.getName())

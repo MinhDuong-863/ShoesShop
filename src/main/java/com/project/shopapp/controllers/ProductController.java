@@ -50,11 +50,15 @@ public class ProductController {
     private final LocalizationUtils localizationUtils;
     @GetMapping("") //http://localhost:8088/api/v1/products?page=1&limit=10
     public ResponseEntity<ProductListResponse> getAllProducts(
-            @RequestParam("page") int page, @RequestParam("limit") int limit) {
+            @RequestParam(defaultValue = "") String keyWord,
+            @RequestParam(defaultValue = "0", name = "category_id") int categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ){
         PageRequest pageRequest = PageRequest.of(
                 page, limit, Sort.by("id").ascending()
         );
-        Page<ProductResponse> productPage = productService.getProducts(pageRequest);
+        Page<ProductResponse> productPage = productService.getProducts(keyWord, categoryId, pageRequest);
         //Get total pages
         int totalPages = productPage.getTotalPages();
         List<ProductResponse> products = productPage.getContent();

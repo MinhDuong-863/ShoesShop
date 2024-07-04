@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public interface IProductService {
     Product createProduct(ProductDTO product) throws DataNotFoundException;
     Product getProductById(int id) throws DataNotFoundException;
-    Page<ProductResponse> getProducts(PageRequest pageRequest);
+    Page<ProductResponse> getProducts(String keyWord, int categoryId, PageRequest pageRequest);
     Product updateProduct(int id, ProductDTO product) throws DataNotFoundException;
     void deleteProduct(int id);
     boolean existsByName(String name);

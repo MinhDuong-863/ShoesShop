@@ -48,10 +48,11 @@ public class ProductService implements IProductService {
     }
 
     @Override
-    public Page<ProductResponse> getProducts(PageRequest pageRequest) {
+    public Page<ProductResponse> getProducts(String keyWord, int categoryId, PageRequest pageRequest) {
         //Get list of products by page and limit
-        return productRepository.findAll(pageRequest)
-                .map(ProductResponse::fromProduct);
+        Page<Product> productsPage;
+        productsPage = productRepository.searchProducts(categoryId, keyWord, pageRequest);
+        return productsPage.map(ProductResponse::fromProduct);
     }
 
     @Override

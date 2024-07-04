@@ -20,18 +20,15 @@ public class CategoryService implements ICategoryService{
         Category category = Category.builder().name(categoryDTO.getName()).build();
         return categoryRepository.save(category);
     }
-
     @Override
     public Category getCategory(int id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
     }
-
     @Override
     public List<Category> getCategories() {
         return categoryRepository.findAll();
     }
-
     @Override
     @Transactional
     public Category updateCategory(int id, CategoryDTO categoryDTO) {
@@ -40,7 +37,6 @@ public class CategoryService implements ICategoryService{
         categoryRepository.save(existingCategory);
         return existingCategory;
     }
-
     @Override
     @Transactional
     public void deleteCategory(int id) {
