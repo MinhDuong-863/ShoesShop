@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface ProductRepository extends JpaRepository<Product, Integer> {
     boolean existsByName(String name);
     Page<Product> findAll(Pageable pageable); // phan trang
@@ -19,4 +22,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             @Param("keyWord") String keyWord,
             Pageable pageable
     );
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.productImages WHERE p.id = :productId")
+    Optional<Product> getDetailProduct(@Param("productId") int productId);
+    @Query("SELECT p FROM Product p WHERE p.id IN :productIds")
+    List<Product> findProductsByIds(@Param("productIds") List<Integer> productIds);
 }
