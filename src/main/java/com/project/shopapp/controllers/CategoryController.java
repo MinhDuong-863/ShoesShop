@@ -44,8 +44,7 @@ public class CategoryController {
     }
     //Hiển thị tất cả categories
     @GetMapping("") //http://localhost:8088/api/v1/categories?page=1&limit=10
-    public ResponseEntity<List<Category>> getAllCategories(
-            @RequestParam("page") int page, @RequestParam("limit") int limit) {
+    public ResponseEntity<List<Category>> getAllCategories() {
         List<Category> categories = categoryService.getCategories();
         return ResponseEntity.ok(categories);
     }

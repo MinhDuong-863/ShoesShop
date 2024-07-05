@@ -10,10 +10,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 public interface IProductService {
     Product createProduct(ProductDTO product) throws DataNotFoundException;
     Product getProductById(int id) throws DataNotFoundException;
-    Page<ProductResponse> getProducts(PageRequest pageRequest);
+    List<Product> findProductByIds(List<Integer> ids);
+    Page<ProductResponse> getProducts(String keyWord, int categoryId, PageRequest pageRequest);
     Product updateProduct(int id, ProductDTO product) throws DataNotFoundException;
     void deleteProduct(int id);
     boolean existsByName(String name);

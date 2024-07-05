@@ -32,15 +32,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("${api.prefix}/products")
@@ -50,11 +49,15 @@ public class ProductController {
     private final LocalizationUtils localizationUtils;
     @GetMapping("") //http://localhost:8088/api/v1/products?page=1&limit=10
     public ResponseEntity<ProductListResponse> getAllProducts(
-            @RequestParam("page") int page, @RequestParam("limit") int limit) {
+            @RequestParam(defaultValue = "") String keyWord,
+            @RequestParam(defaultValue = "0", name = "category_id") int categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ){
         PageRequest pageRequest = PageRequest.of(
                 page, limit, Sort.by("id").ascending()
         );
-        Page<ProductResponse> productPage = productService.getProducts(pageRequest);
+        Page<ProductResponse> productPage = productService.getProducts(keyWord, categoryId, pageRequest);
         //Get total pages
         int totalPages = productPage.getTotalPages();
         List<ProductResponse> products = productPage.getContent();
@@ -69,6 +72,22 @@ public class ProductController {
         try {
             Product product = productService.getProductById(id);
             return ResponseEntity.ok(ProductResponse.fromProduct(product));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                    CRUDProductResponse.builder()
+                            .message(localizationUtils.getLocalizedMessage(MessageKey.GET_PRODUCT_FAILED, e.getMessage()))
+                            .build()
+            );
+        }
+    }
+    @GetMapping("/by-ids")
+    public ResponseEntity<?> getProductByIds(@RequestParam("ids") String ids){
+        try {
+            List<Integer> productIds = Arrays.stream(ids.split(","))
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
+            List<Product> products = productService.findProductByIds(productIds);
+            return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
                     CRUDProductResponse.builder()
@@ -171,9 +190,12 @@ public class ProductController {
             Path imagePath = Paths.get("uploads/" + imageName);
             UrlResource resource = new UrlResource(imagePath.toUri());
             if (resource.exists()) {
-                return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(resource);
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG).body(resource);
             } else {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(new UrlResource(Paths.get("uploads/405.jpg").toUri()));
             }
         } catch (Exception e) {
             return ResponseEntity.notFound().build();

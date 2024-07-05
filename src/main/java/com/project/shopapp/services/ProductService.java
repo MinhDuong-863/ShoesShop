@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,7 +26,6 @@ public class ProductService implements IProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductImageRepository productImageRepository;
-
     @Override
     @Transactional
     public Product createProduct(ProductDTO productDTO) throws DataNotFoundException {
@@ -40,20 +40,26 @@ public class ProductService implements IProductService {
                 .build();
         return productRepository.save(product);
     }
-
     @Override
     public Product getProductById(int id) throws DataNotFoundException {
-        return productRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("Product not found"));
+        Optional<Product> optionalProduct = productRepository.findById(id);
+        if(optionalProduct.isPresent()) {
+            return optionalProduct.get();
+        } else {
+            throw new DataNotFoundException("Product not found with id: " + id);
+        }
     }
-
     @Override
-    public Page<ProductResponse> getProducts(PageRequest pageRequest) {
-        //Get list of products by page and limit
-        return productRepository.findAll(pageRequest)
-                .map(ProductResponse::fromProduct);
+    public List<Product> findProductByIds(List<Integer> ids) {
+        return productRepository.findProductsByIds(ids);
     }
-
+    @Override
+    public Page<ProductResponse> getProducts(String keyWord, int categoryId, PageRequest pageRequest) {
+        //Get list of products by page and limit
+        Page<Product> productsPage;
+        productsPage = productRepository.searchProducts(categoryId, keyWord, pageRequest);
+        return productsPage.map(ProductResponse::fromProduct);
+    }
     @Override
     @Transactional
     public Product updateProduct(int id, ProductDTO productDTO) throws DataNotFoundException {
@@ -68,19 +74,16 @@ public class ProductService implements IProductService {
         existingProduct.setThumbnail(productDTO.getThumbnail());
         return productRepository.save(existingProduct);
     }
-
     @Override
     @Transactional
     public void deleteProduct(int id) {
         Optional<Product> optionalProduct = productRepository.findById(id);
         optionalProduct.ifPresent(productRepository::delete);
     }
-
     @Override
     public boolean existsByName(String name) {
         return productRepository.existsByName(name);
     }
-
     @Override
     @Transactional
     public ProductImage createProductImage(int productId, ProductImageDTO productImageDTO) throws Exception {
