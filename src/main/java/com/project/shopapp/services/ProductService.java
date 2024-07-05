@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -47,6 +48,10 @@ public class ProductService implements IProductService {
         } else {
             throw new DataNotFoundException("Product not found with id: " + id);
         }
+    }
+    @Override
+    public List<Product> findProductByIds(List<Integer> ids) {
+        return productRepository.findProductsByIds(ids);
     }
     @Override
     public Page<ProductResponse> getProducts(String keyWord, int categoryId, PageRequest pageRequest) {
