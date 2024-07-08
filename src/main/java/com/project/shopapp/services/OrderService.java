@@ -68,6 +68,7 @@ public class OrderService implements IOrderService{
             orderDetail.setProduct(product);
             orderDetail.setQuantity(quantity);
             orderDetail.setPrice(product.getPrice());
+            orderDetail.setTotalMoney(product.getPrice() * quantity);
             orderDetails.add(orderDetail);
         }
         orderDetailRepository.saveAll(orderDetails);
