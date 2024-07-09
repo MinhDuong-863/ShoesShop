@@ -35,14 +35,14 @@ public class JwtTokenUtils {
         //properties --> claims
         Map<String, Object> claims = new HashMap<>();
         claims.put("phoneNumber", user.getPhoneNumber());
+        claims.put("userId", user.getId());
         try {
-            String token = Jwts.builder()
+            return Jwts.builder()
                     .setClaims(claims) //how to extract claims from this ?
                     .setSubject(user.getPhoneNumber())
                     .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000L))
                     .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                     .compact();
-            return token;
         } catch (Exception e) {
             throw new InvalidParamException("Cannot create jwt token, error: "+e.getMessage());
         }

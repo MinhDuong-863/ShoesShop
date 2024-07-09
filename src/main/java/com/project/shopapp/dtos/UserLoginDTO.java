@@ -1,6 +1,7 @@
 package com.project.shopapp.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
@@ -17,6 +18,7 @@ public class UserLoginDTO {
     @NotBlank(message = "Password is required")
     private String password;
 
+    @Min(value = 1, message = "Role ID is required")
     @JsonProperty("role_id")
     private Integer roleId;
 }

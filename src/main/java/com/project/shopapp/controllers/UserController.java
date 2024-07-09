@@ -2,8 +2,10 @@ package com.project.shopapp.controllers;
 
 import com.project.shopapp.dtos.UserDTO;
 import com.project.shopapp.dtos.UserLoginDTO;
+import com.project.shopapp.models.User;
 import com.project.shopapp.responses.LoginResponse;
 import com.project.shopapp.responses.RegisterResponse;
+import com.project.shopapp.responses.UserResponse;
 import com.project.shopapp.services.IUserService;
 import com.project.shopapp.components.LocalizationUtils;
 import com.project.shopapp.utils.MessageKey;
@@ -12,10 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -81,6 +80,16 @@ public class UserController {
                     LoginResponse.builder()
                             .message(localizationUtils.getLocalizedMessage(MessageKey.LOGIN_FAILED, e.getMessage()))
                             .build());
+        }
+    }
+    @PostMapping("/details")
+    public ResponseEntity<UserResponse> getUserDetails(@RequestHeader("Authorization") String token) {
+        try {
+            String extractedToken = token.substring(7); // Bỏ "Bearer " ở đầu token
+            User user = userService.getUserDetailsFromToken(extractedToken);
+            return ResponseEntity.ok(UserResponse.fromUser(user));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 }
