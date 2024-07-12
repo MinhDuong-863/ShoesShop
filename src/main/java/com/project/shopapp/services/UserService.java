@@ -1,6 +1,7 @@
 package com.project.shopapp.services;
 
 import com.project.shopapp.components.JwtTokenUtils;
+import com.project.shopapp.dtos.UpdateUserDTO;
 import com.project.shopapp.dtos.UserDTO;
 import com.project.shopapp.exceptions.DataNotFoundException;
 import com.project.shopapp.exceptions.PermissionDenyException;
@@ -14,6 +15,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -88,6 +90,47 @@ public class UserService implements IUserService{
 
         if(user.isPresent()) return user.get();
         else throw new DataNotFoundException("User not found");
+    }
+
+    @Override
+    @Transactional
+    public User updateUser(int id, UpdateUserDTO updateUserDTO) throws Exception {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
+
+        String newPhoneNumber = updateUserDTO.getPhoneNumber();
+        if(!existingUser.getPhoneNumber().equals(newPhoneNumber) &&
+            userRepository.existsByPhoneNumber(newPhoneNumber)){
+            throw new RuntimeException("Phone number already exists");
+        }
+
+        if (updateUserDTO.getFullname() != null) {
+            existingUser.setFullName(updateUserDTO.getFullname());
+        }
+        if (updateUserDTO.getPhoneNumber() != null) {
+            existingUser.setPhoneNumber(updateUserDTO.getPhoneNumber());
+        }
+        if (updateUserDTO.getAddress() != null) {
+            existingUser.setAddress(updateUserDTO.getAddress());
+        }
+        if (updateUserDTO.getDateOfBirth() != null) {
+            existingUser.setDateOfBirth(updateUserDTO.getDateOfBirth());
+        }
+        if (updateUserDTO.getGender() != 0) {
+            existingUser.setGender(updateUserDTO.getGender());
+        }
+        if (updateUserDTO.getFacebookAccountId() > 0) {
+            existingUser.setFbAccountId(updateUserDTO.getFacebookAccountId());
+        }
+        if (updateUserDTO.getGoogleAccountId() > 0) {
+            existingUser.setGgAccountId(updateUserDTO.getGoogleAccountId());
+        }
+        if (updateUserDTO.getPassword() != null && !updateUserDTO.getPassword().isEmpty()) {
+            String password = updateUserDTO.getPassword();
+            String encodedPassword = passwordEncoder.encode(password);
+            existingUser.setPassword(encodedPassword);
+        }
+        return userRepository.save(existingUser);
     }
 
 }
